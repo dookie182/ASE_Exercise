@@ -9,48 +9,44 @@ _LOADED_PARTIES = {}  # dict of available parties
 _PARTY_NUMBER = 0  # index of the last created party
 
 
-# TODO: complete the decoration
 @parties.route("/parties", methods=['POST','GET'])
 def all_parties():
     result = None
     if request.method == 'POST':
         try:
+            #Create a party 
             result = create_party(request)
-            # TODO: create a party
         except CannotPartyAloneError:
-            # TODO: return 400
+            #Exception for handling empty party case
             abort(400)
 
     elif request.method == 'GET':
-
+        #Returns all parties created
         result = get_all_parties()
-        # TODO: get all the parties
 
     return result
 
 
-# TODO: complete the decoration
 @parties.route("/parties/loaded", methods=['GET'])
 def loaded_parties():
+    #Returns the number of parties currently loaded in the system
     return jsonify({'loaded_parties': len(_LOADED_PARTIES)})
-    # TODO: returns the number of parties currently loaded in the system
 
 
-# TODO: complete the decoration
 @parties.route("/party/<id>", methods=['GET', 'DELETE'])
 def single_party(id):
     global _LOADED_PARTIES
     result = ""
 
+    #Check if the party is an existing one
     exists_party(id)
-    # TODO: check if the party is an existing one
 
     if 'GET' == request.method:
-        # TODO: retrieve a party
+        #Retrieve a party
         result = jsonify(_LOADED_PARTIES[id].serialize())
 
     elif 'DELETE' == request.method:
-        # TODO: delete a party
+        #Delete a party
         del _LOADED_PARTIES[id]
         result = jsonify("Party Deleted!")
 
@@ -58,30 +54,28 @@ def single_party(id):
     return result
 
 
-# TODO: complete the decoration
 @parties.route("/party/<id>/foodlist", methods=['GET'])
 def get_foodlist(id):
     global _LOADED_PARTIES
     result = ""
 
-    # TODO: check if the party is an existing one
+    #Check if the party is an existing one
     exists_party(id)
 
     if 'GET' == request.method:
-        # TODO: retrieve food-list of the party
+        #Retrieve food-list of the party
         result = jsonify({'foodlist':_LOADED_PARTIES[id].get_food_list().serialize()})
 
     return result
 
 
-# TODO: complete the decoration
 @parties.route("/party/<id>/foodlist/<user>/<item>", methods=['POST', 'DELETE'])
 def edit_foodlist(id, user, item):
     global _LOADED_PARTIES
 
-    # TODO: check if the party is an existing one
+    #Check if the party is an existing one
     exists_party(id)
-    # TODO: retrieve the party
+    #Retrieve the party
     tmpParty = _LOADED_PARTIES[id]
     result = ""
 
@@ -89,20 +83,21 @@ def edit_foodlist(id, user, item):
         try:
            result = jsonify(tmpParty.add_to_food_list(item,user).serialize())
         except(NotInvitedGuestError):
+            #Exception for handling add item to food list case from not invited guest
             abort(401)
         except(ItemAlreadyInsertedByUser):
+            #Exception for handling the case when a guest tries to insert an item already inserted in the food list
             abort(400)
             
-        # TODO: add item to food-list handling NotInvitedGuestError (401) and ItemAlreadyInsertedByUser (400)
-
     if 'DELETE' == request.method:
         try:
+            #Remove food from food list of a party
             tmpParty.remove_from_food_list(item,user)
             result = jsonify({'msg':"Food deleted!"})
         except(NotExistingFoodError):
+            #Exception for handling the delete of a food not inserted in the food list
             abort(400)
 
-        # TODO: delete item to food-list handling NotExistingFoodError (400)
     return result
 
 #
